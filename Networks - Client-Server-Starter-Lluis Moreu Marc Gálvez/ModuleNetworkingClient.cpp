@@ -72,6 +72,16 @@ bool ModuleNetworkingClient::gui()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
+		ImGui::Text("Hello %s! Welcome to the chat :)", playerName.c_str());
+		if (ImGui::Button("Logout"))
+		{
+			m_messages.clear();
+
+			disconnect();
+			state = ClientState::Stopped;
+		}
+		ImGui::Separator();
+
 		for (const auto& message : m_messages)
 		{
 			//ImGui::Text("%s connected to the server...", playerName.c_str());
@@ -95,10 +105,10 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		m_messages.push_back(message);
 	}
 	else if (serverMessage == ServerMessage::NonWelcome) {
-		std::string message = "The player name" + playerName + "already exists";
-		packet >> message;
+		ELOG("'%s' already exists",playerName.c_str());
 
-		m_messages.push_back(message);
+		disconnect();
+		state = ClientState::Stopped;
 	}
 }
 

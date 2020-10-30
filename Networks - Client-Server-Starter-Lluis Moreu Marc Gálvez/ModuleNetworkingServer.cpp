@@ -128,7 +128,6 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			{
 				OutputMemoryStream packet;
 				packet << ServerMessage::NonWelcome;
-				packet << playerName + " already exists";
 
 				if (!sendPacket(packet, socket))
 				{
