@@ -124,6 +124,21 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		// Set the player name of the corresponding connected socket proxy
 		for (auto& connectedSocket : connectedSockets)
 		{
+			if (connectedSocket.playerName == playerName)
+			{
+				OutputMemoryStream packet;
+				packet << ServerMessage::NonWelcome;
+				packet << playerName + " already exists";
+
+				if (!sendPacket(packet, socket))
+				{
+					disconnect();
+					state = ServerState::Stopped;
+				}
+
+				return;
+			}
+
 			if (connectedSocket.socket == socket)
 			{
 				connectedSocket.playerName = playerName;

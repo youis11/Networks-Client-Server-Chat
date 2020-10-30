@@ -94,6 +94,12 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 
 		m_messages.push_back(message);
 	}
+	else if (serverMessage == ServerMessage::NonWelcome) {
+		std::string message = "The player name" + playerName + "already exists";
+		packet >> message;
+
+		m_messages.push_back(message);
+	}
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
