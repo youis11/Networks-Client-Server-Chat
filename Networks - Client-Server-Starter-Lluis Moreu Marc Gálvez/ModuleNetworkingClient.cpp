@@ -1,5 +1,7 @@
 #include "ModuleNetworkingClient.h"
 
+#define IMGUI_COLOR_YELLOW ImVec4(1.0f,1.0f,0.0f,1.0f)
+
 bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char *pplayerName)
 {
 	playerName = pplayerName;
@@ -52,7 +54,8 @@ bool ModuleNetworkingClient::update()
 		{
 			state = ClientState::Logging;
 		}
-		else {
+		else 
+		{
 			disconnect();
 			state = ClientState::Stopped;
 		}
@@ -73,20 +76,31 @@ bool ModuleNetworkingClient::gui()
 		ImGui::Image(tex->shaderResource, texSize);
 
 		ImGui::Text("Hello %s! Welcome to the chat :)", playerName.c_str());
+		ImGui::SameLine();
 		if (ImGui::Button("Logout"))
 		{
 			m_messages.clear();
+			m_welcome_message.clear();
 
 			disconnect();
 			state = ClientState::Stopped;
 		}
 		ImGui::Separator();
-
-		for (const auto& message : m_messages)
+		if (ImGui::BeginChild("Chat_Panel", ImVec2(ImGui::GetWindowWidth()*0.955f, ImGui::GetWindowHeight()*0.64f), true))
 		{
-			//ImGui::Text("%s connected to the server...", playerName.c_str());
-			ImGui::Text("%s", message.c_str());
+			for (const auto& message : m_welcome_message)
+			{
+				ImGui::TextColored(IMGUI_COLOR_YELLOW, "%s", message.c_str());
+			}
+			for (const auto& message : m_messages)
+			{
+				//ImGui::Text("%s connected to the server...", playerName.c_str());
+				ImGui::Text("%s", message.c_str());
+			}
+			ImGui::EndChild();
 		}
+		
+		
 
 		static char text[128] = "Write a message";
 		if (ImGui::InputText("Press Enter", text, sizeof(text), ImGuiInputTextFlags_EnterReturnsTrue))
@@ -116,7 +130,19 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	ServerMessage serverMessage;
 	packet >> serverMessage;
 
-	if (serverMessage == ServerMessage::Welcome || serverMessage == ServerMessage::ClientConnection || serverMessage == ServerMessage::ClientDisconnection || serverMessage == ServerMessage::Type) {
+	if (serverMessage == ServerMessage::Welcome) {
+		std::string message;
+		packet >> message;
+
+		m_welcome_message.push_back(message);
+	}
+	if (serverMessage == ServerMessage::ClientConnection) {
+		std::string message;
+		packet >> message;
+
+		m_messages.push_back(message);
+	}
+	if (serverMessage == ServerMessage::ClientDisconnection || serverMessage == ServerMessage::Type) {
 		std::string message;
 		packet >> message;
 

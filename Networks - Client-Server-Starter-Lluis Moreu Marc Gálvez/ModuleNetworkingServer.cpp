@@ -1,6 +1,5 @@
 #include "ModuleNetworkingServer.h"
 
-
 //////////////////////////////////////////////////////////////////////
 // ModuleNetworkingServer public methods
 //////////////////////////////////////////////////////////////////////
@@ -128,9 +127,9 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 			if (connectedSocket.socket == socket) {
 				connectedSocket.playerName = playerName;
-
+				
 				packet << ServerMessage::Welcome;
-				packet << "*******************\nWELCOME TO THE CHAT\n*******************";
+				packet << "**************************************************\n               WELCOME TO THE CHAT\nPlease type /help to see the available commands\n**************************************************";
 			}
 			else if(connectedSocket.playerName == playerName)
 			{
