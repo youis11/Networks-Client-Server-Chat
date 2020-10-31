@@ -176,7 +176,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			packet << ServerMessage::Type;
 			if (message == "/help")
 			{
-				std::string message = "******* Command list: *******\n/help\n/kick\/list\n/whisper [username] [message]";
+				std::string message = "******* Command list: *******\n/help\n/kick\/list\n/whisper [username] [message]\n/change_name [name]";
 				packet << message;
 			}
 			else if (message == "/list")
@@ -190,13 +190,31 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			}
 			else if (message.find("/kick") == 0)
 			{
-				/*for (auto& s : connectedSockets)
+				for (auto& s : connectedSockets)
 				{
 					if (message.find(s.playerName) == 0)
 					{
-						packet << s.playerName + " Al carrer";
+						packet << "******** " + s.playerName + " left ********";
 					}
-				}*/
+				}
+
+				//Pasar un paquete al cliente para que chape el negocio
+			}
+			else if (message.find("/whisper") == 0)
+			{
+				for (auto& s : connectedSockets)
+				{
+					if (message.find(s.playerName) == 0)
+					{
+
+					}
+				}
+			}
+			else if (message.find("/change_name") == 0)
+			{
+				std::string new_name = message.substr(12, message.length());
+				packet << "******** " + connectedSocket.playerName + " changed his name to:" + new_name + " ********";
+				connectedSocket.playerName = new_name;
 			}
 			else
 			{
@@ -211,29 +229,6 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			}
 		}
 	}
-	else if (clientMessage == ClientMessage::Command)
-	{
-		std::string message;
-		packet >> message;
-
-		for (auto& connectedSocket : connectedSockets) {
-
-			OutputMemoryStream packet;
-			if (message == "/help")
-			{
-				packet << ServerMessage::Command;
-				std::string message = "******* Command list: *******\n/help\n/kick\/list\n/whisper [username] [message]";
-				packet << message;
-			}
-			else if (message == "/kick")
-			{
-				disconnect();
-			}
-			
-		}
-		
-	}
-	
 }
 
 void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
