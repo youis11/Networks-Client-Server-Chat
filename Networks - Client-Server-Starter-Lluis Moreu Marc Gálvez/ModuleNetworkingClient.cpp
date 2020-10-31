@@ -87,7 +87,25 @@ bool ModuleNetworkingClient::gui()
 			//ImGui::Text("%s connected to the server...", playerName.c_str());
 			ImGui::Text("%s", message.c_str());
 		}
+
+		static char text[128] = "Write a message";
+		if (ImGui::InputText("Press Enter", text, sizeof(text), ImGuiInputTextFlags_EnterReturnsTrue))
+		{
+			OutputMemoryStream packet;
+			packet << ClientMessage::Type;
+			packet << text;
+
+			if (!sendPacket(packet, s))
+			{
+				disconnect();
+				state = ClientState::Stopped;
+			}
+
+			strcpy_s(text, 128, "");
+		}
+
 		ImGui::End();
+
 	}
 
 	return true;
@@ -98,7 +116,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	ServerMessage serverMessage;
 	packet >> serverMessage;
 
-	if (serverMessage == ServerMessage::Welcome || serverMessage == ServerMessage::ClientConnection || serverMessage == ServerMessage::ClientDisconnection) {
+	if (serverMessage == ServerMessage::Welcome || serverMessage == ServerMessage::ClientConnection || serverMessage == ServerMessage::ClientDisconnection || serverMessage == ServerMessage::Type) {
 		std::string message;
 		packet >> message;
 

@@ -166,6 +166,26 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			}
 		}
 	}
+	else if (clientMessage == ClientMessage::Type)
+	{
+		std::string message;
+		packet >> message;
+
+		for (auto& connectedSocket : connectedSockets) {
+
+			OutputMemoryStream packet;
+			packet << ServerMessage::Type;
+			packet << connectedSocket.playerName + ": " + message;
+
+			if (!sendPacket(packet, connectedSocket.socket))
+			{
+				disconnect();
+				state = ServerState::Stopped;
+
+				break;
+			}
+		}
+	}
 	
 }
 
