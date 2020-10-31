@@ -110,7 +110,7 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 	connectedSockets.push_back(connectedSocket);
 }
 
-void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
+void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStream& packet)
 {
 	ClientMessage clientMessage;
 	packet >> clientMessage;
@@ -125,7 +125,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		{
 			OutputMemoryStream packet;
 
-			if (connectedSocket.socket == socket) {
+			if (connectedSocket.socket == s) {
 				connectedSocket.playerName = playerName;
 				
 				packet << ServerMessage::Welcome;
@@ -155,7 +155,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 				OutputMemoryStream packete;
 				packete << ServerMessage::NonWelcome;
 
-				if (!sendPacket(packete, socket))
+				if (!sendPacket(packete, s))
 				{
 					disconnect();
 					state = ServerState::Stopped;
@@ -167,20 +167,24 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	}
 	else if (clientMessage == ClientMessage::Type)
 	{
+		std::string playerName;
 		std::string message;
 		packet >> message;
+		packet >> playerName;
 
-		for (auto& connectedSocket : connectedSockets) {
+		for (auto& c_socket : connectedSockets) {
 
 			OutputMemoryStream packet;
-			packet << ServerMessage::Type;
+
 			if (message == "/help")
 			{
-				std::string message = "******* Command list: *******\n/help\n/kick\/list\n/whisper [username] [message]\n/change_name [name]";
+				packet << ServerMessage::Type;
+				std::string message = "******* Command list: *******\n/help\n/kick\n/list\n/whisper [username] [message]\n/change_name [name]\n/drugs";
 				packet << message;
 			}
 			else if (message == "/list")
 			{
+				packet << ServerMessage::Type;
 				std::string message = "******* User list *******";
 				for (auto& s : connectedSockets)
 				{
@@ -190,11 +194,13 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			}
 			else if (message.find("/kick") == 0)
 			{
+				packet << ServerMessage::Kick;
 				for (auto& s : connectedSockets)
 				{
 					if (message.find(s.playerName) == 0)
 					{
 						packet << "******** " + s.playerName + " left ********";
+						packet << true;
 					}
 				}
 
@@ -202,31 +208,38 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			}
 			else if (message.find("/whisper") == 0)
 			{
+				packet << ServerMessage::Type;
 				for (auto& s : connectedSockets)
 				{
 					if (message.find(s.playerName) == 0)
 					{
-
+						
 					}
 				}
 			}
-			else if (message.find("/change_name") == 0)
+			else if (message.find("/change_name") == 0 && c_socket.socket == s)
 			{
+				packet << ServerMessage::ChangeName;
 				std::string new_name = message.substr(12, message.length());
-				packet << "******** " + connectedSocket.playerName + " changed his name to:" + new_name + " ********";
-				connectedSocket.playerName = new_name;
+				packet << "*** " + c_socket.playerName + " changed to:" + new_name + " ***";
+				c_socket.playerName = new_name;
+				packet << c_socket.playerName;
+				
 			}
-			else
+			else 
 			{
-				packet << connectedSocket.playerName + ": " + message;
+				packet << ServerMessage::Type;
+				packet << playerName + ": " + message;
+				
+				
 			}
-			if (!sendPacket(packet, connectedSocket.socket))
+			if (!sendPacket(packet, c_socket.socket))
 			{
 				disconnect();
 				state = ServerState::Stopped;
 
 				break;
-			}
+			}		
 		}
 	}
 }

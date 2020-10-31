@@ -77,10 +77,11 @@ bool ModuleNetworkingClient::gui()
 
 		ImGui::Text("Hello %s! Welcome to the chat :)", playerName.c_str());
 		ImGui::SameLine();
-		if (ImGui::Button("Logout"))
+		if (ImGui::Button("Logout") || has_kicked)
 		{
 			m_messages.clear();
 			m_welcome_message.clear();
+			has_kicked = false;
 
 			disconnect();
 			state = ClientState::Stopped;
@@ -93,7 +94,6 @@ bool ModuleNetworkingClient::gui()
 			}
 			for (const auto& message : m_messages)
 			{
-				//ImGui::Text("%s connected to the server...", playerName.c_str());
 				ImGui::Text("%s", message.c_str());
 			}
 			ImGui::EndChild();
@@ -108,6 +108,8 @@ bool ModuleNetworkingClient::gui()
 			
 			packet << ClientMessage::Type;
 			packet << text;
+			packet << playerName;
+
 			if (!sendPacket(packet, s))
 			{
 				disconnect();
@@ -116,7 +118,9 @@ bool ModuleNetworkingClient::gui()
 
 			strcpy_s(text, 128, "");
 			ImGui::SetKeyboardFocusHere();
+
 		}
+
 
 		ImGui::End();
 
@@ -147,6 +151,28 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> message;
 
 		m_messages.push_back(message);
+	}
+	if (serverMessage == ServerMessage::ChangeName)
+	{
+		std::string message;
+		std::string p_name;
+
+		packet >> message;
+		packet >> p_name;
+
+		m_messages.push_back(message);
+		playerName = p_name;
+	}
+	if (serverMessage == ServerMessage::Kick)
+	{
+		std::string message;
+		bool kick;
+
+		packet >> message;
+		packet >> kick;
+
+		m_messages.push_back(message);
+		has_kicked = kick;
 	}
 	else if (serverMessage == ServerMessage::NonWelcome) {
 		ELOG("'%s' already exists",playerName.c_str());
