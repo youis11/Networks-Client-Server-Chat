@@ -1,6 +1,11 @@
 #include "ModuleNetworkingClient.h"
 
 #define IMGUI_COLOR_YELLOW ImVec4(1.0f,1.0f,0.0f,1.0f)
+#define IMGUI_COLOR_CIAN ImVec4(0.1f,0.9f,1.0f,1.0f)
+#define IMGUI_COLOR_GREEN ImVec4(0.2f,0.9f,0.5f,1.0f)
+#define IMGUI_COLOR_WHITE ImVec4(1.0f,1.0f,1.0f,1.0f)
+#define IMGUI_COLOR_GREY ImVec4(0.3f,0.4f,0.5f,1.0f)
+#define IMGUI_COLOR_RED ImVec4(0.7f,0.f,0.f,1.0f)
 
 bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char *pplayerName)
 {
@@ -80,25 +85,20 @@ bool ModuleNetworkingClient::gui()
 		if (ImGui::Button("Logout") || has_kicked)
 		{
 			m_messages.clear();
-			m_welcome_message.clear();
 			has_kicked = false;
 
 			disconnect();
 			state = ClientState::Stopped;
 		}
 		if (ImGui::BeginChild("Chat_Panel", ImVec2(ImGui::GetWindowWidth()*0.955f, ImGui::GetWindowHeight()*0.64f), true))
-		{
-			for (const auto& message : m_welcome_message)
-			{
-				ImGui::TextColored(IMGUI_COLOR_YELLOW, "%s", message.c_str());
-			}
+		{			
 			for (const auto& message : m_messages)
 			{
-				ImGui::Text("%s", message.c_str());
+				ImGui::TextColored(message.second, "%s", message.first.c_str());
 			}
-			ImGui::EndChild();
 		}
-		
+		ImGui::EndChild();
+
 		
 
 		static char text[128] = "";
@@ -138,19 +138,31 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		std::string message;
 		packet >> message;
 
-		m_welcome_message.push_back(message);
+		m_messages.push_back({ message, IMGUI_COLOR_YELLOW });
 	}
-	if (serverMessage == ServerMessage::ClientDisconnection || serverMessage == ServerMessage::ClientConnection) {
+	if (serverMessage == ServerMessage::ClientDisconnection) {
 		std::string message;
 		packet >> message;
 
-		m_messages.push_back(message);
+		m_messages.push_back({ message, IMGUI_COLOR_GREY });
+	}
+	if (serverMessage == ServerMessage::ClientConnection) {
+		std::string message;
+		packet >> message;
+
+		m_messages.push_back({ message, IMGUI_COLOR_GREEN });
 	}
 	if (serverMessage == ServerMessage::Type) {
 		std::string message;
 		packet >> message;
 
-		m_messages.push_back(message);
+		m_messages.push_back({message, IMGUI_COLOR_WHITE });
+	}
+	if (serverMessage == ServerMessage::Help) {
+		std::string message;
+		packet >> message;
+
+		m_messages.push_back({message, IMGUI_COLOR_YELLOW });
 	}
 	if (serverMessage == ServerMessage::ChangeName)
 	{
@@ -160,7 +172,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> message;
 		packet >> p_name;
 
-		m_messages.push_back(message);
+		m_messages.push_back({message, IMGUI_COLOR_CIAN});
 		playerName = p_name;
 	}
 	if (serverMessage == ServerMessage::Kick)
@@ -171,7 +183,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> message;
 		packet >> kick;
 
-		m_messages.push_back(message);
+		m_messages.push_back({ message, IMGUI_COLOR_RED });
 		has_kicked = kick;
 	}
 	else if (serverMessage == ServerMessage::NonWelcome) {

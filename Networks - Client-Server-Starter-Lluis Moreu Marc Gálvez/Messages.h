@@ -17,5 +17,6 @@ enum class ServerMessage
 	ClientDisconnection,
 	Type,
 	ChangeName,
+	Help,
 	Kick
 };

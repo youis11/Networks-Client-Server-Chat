@@ -176,15 +176,16 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 
 			OutputMemoryStream packet;
 
-			if (message == "/help")
+			if (message == "/help" && c_socket.socket == s)
 			{
-				packet << ServerMessage::Type;
+				packet << ServerMessage::Help;
 				std::string message = "******* Command list: *******\n/help\n/kick\n/list\n/whisper [username] [message]\n/change_name [name]\n/drugs";
-				packet << message;
+				packet << message;	
+				
 			}
-			else if (message == "/list")
+			else if (message == "/list" && c_socket.socket == s)
 			{
-				packet << ServerMessage::Type;
+				packet << ServerMessage::Help;
 				std::string message = "******* User list *******";
 				for (auto& s : connectedSockets)
 				{
@@ -226,8 +227,9 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 				packet << c_socket.playerName;
 				
 			}
-			else 
+			else if (message.rfind("/", 0) != 0)
 			{
+				
 				packet << ServerMessage::Type;
 				packet << playerName + ": " + message;
 				

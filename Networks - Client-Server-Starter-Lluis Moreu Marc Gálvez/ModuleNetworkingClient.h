@@ -58,9 +58,7 @@ private:
 	std::string playerName;
 	bool has_kicked;
 
-	std::list<std::string> m_messages;
-	std::list<std::string> m_welcome_message;
-	std::list<std::string> m_client_message;
+	std::list<std::pair<std::string, ImVec4>> m_messages;
 
 	ImGuiTextBuffer buffer;
 
