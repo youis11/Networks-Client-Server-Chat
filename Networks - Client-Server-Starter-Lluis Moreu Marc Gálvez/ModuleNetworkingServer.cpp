@@ -174,8 +174,34 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 			OutputMemoryStream packet;
 			packet << ServerMessage::Type;
-			packet << connectedSocket.playerName + ": " + message;
-
+			if (message == "/help")
+			{
+				std::string message = "******* Command list: *******\n/help\n/kick\/list\n/whisper [username] [message]";
+				packet << message;
+			}
+			else if (message == "/list")
+			{
+				std::string message = "******* User list *******";
+				for (auto& s : connectedSockets)
+				{
+					message += "\n- " + s.playerName;
+				}
+				packet << message;
+			}
+			else if (message.find("/kick") == 0)
+			{
+				/*for (auto& s : connectedSockets)
+				{
+					if (message.find(s.playerName) == 0)
+					{
+						packet << s.playerName + " Al carrer";
+					}
+				}*/
+			}
+			else
+			{
+				packet << connectedSocket.playerName + ": " + message;
+			}
 			if (!sendPacket(packet, connectedSocket.socket))
 			{
 				disconnect();
@@ -184,6 +210,28 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 				break;
 			}
 		}
+	}
+	else if (clientMessage == ClientMessage::Command)
+	{
+		std::string message;
+		packet >> message;
+
+		for (auto& connectedSocket : connectedSockets) {
+
+			OutputMemoryStream packet;
+			if (message == "/help")
+			{
+				packet << ServerMessage::Command;
+				std::string message = "******* Command list: *******\n/help\n/kick\/list\n/whisper [username] [message]";
+				packet << message;
+			}
+			else if (message == "/kick")
+			{
+				disconnect();
+			}
+			
+		}
+		
 	}
 	
 }

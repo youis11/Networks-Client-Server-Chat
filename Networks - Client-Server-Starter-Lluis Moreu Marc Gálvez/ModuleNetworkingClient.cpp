@@ -85,7 +85,6 @@ bool ModuleNetworkingClient::gui()
 			disconnect();
 			state = ClientState::Stopped;
 		}
-		ImGui::Separator();
 		if (ImGui::BeginChild("Chat_Panel", ImVec2(ImGui::GetWindowWidth()*0.955f, ImGui::GetWindowHeight()*0.64f), true))
 		{
 			for (const auto& message : m_welcome_message)
@@ -102,13 +101,13 @@ bool ModuleNetworkingClient::gui()
 		
 		
 
-		static char text[128] = "Write a message";
+		static char text[128] = "";
 		if (ImGui::InputText("Press Enter", text, sizeof(text), ImGuiInputTextFlags_EnterReturnsTrue))
 		{
 			OutputMemoryStream packet;
+			
 			packet << ClientMessage::Type;
 			packet << text;
-
 			if (!sendPacket(packet, s))
 			{
 				disconnect();
@@ -116,6 +115,7 @@ bool ModuleNetworkingClient::gui()
 			}
 
 			strcpy_s(text, 128, "");
+			ImGui::SetKeyboardFocusHere();
 		}
 
 		ImGui::End();
@@ -136,13 +136,13 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 
 		m_welcome_message.push_back(message);
 	}
-	if (serverMessage == ServerMessage::ClientConnection) {
+	if (serverMessage == ServerMessage::ClientDisconnection || serverMessage == ServerMessage::ClientConnection) {
 		std::string message;
 		packet >> message;
 
 		m_messages.push_back(message);
 	}
-	if (serverMessage == ServerMessage::ClientDisconnection || serverMessage == ServerMessage::Type) {
+	if (serverMessage == ServerMessage::Type) {
 		std::string message;
 		packet >> message;
 

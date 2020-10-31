@@ -6,7 +6,8 @@
 enum class ClientMessage
 {
 	Hello,
-	Type
+	Type,
+	Command,
 };
 
 enum class ServerMessage
@@ -15,5 +16,6 @@ enum class ServerMessage
 	NonWelcome,
 	ClientConnection,
 	ClientDisconnection,
-	Type
+	Type,
+	Command,
 };

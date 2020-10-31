@@ -56,6 +56,7 @@ private:
 	SOCKET s = INVALID_SOCKET;
 
 	std::string playerName;
+
 	std::list<std::string> m_messages;
 	std::list<std::string> m_welcome_message;
 	std::list<std::string> m_client_message;
