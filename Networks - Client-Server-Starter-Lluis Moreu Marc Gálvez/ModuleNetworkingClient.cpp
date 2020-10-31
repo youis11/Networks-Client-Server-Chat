@@ -98,7 +98,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	ServerMessage serverMessage;
 	packet >> serverMessage;
 
-	if (serverMessage == ServerMessage::Welcome) {
+	if (serverMessage == ServerMessage::Welcome || serverMessage == ServerMessage::ClientConnection || serverMessage == ServerMessage::ClientDisconnection) {
 		std::string message;
 		packet >> message;
 

@@ -124,34 +124,45 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		// Set the player name of the corresponding connected socket proxy
 		for (auto& connectedSocket : connectedSockets)
 		{
+			OutputMemoryStream packet;
+
+			if (connectedSocket.socket == socket) {
+				connectedSocket.playerName = playerName;
+
+				packet << ServerMessage::Welcome;
+				packet << "*******************\nWELCOME TO THE CHAT\n*******************";
+			}
+			else if(connectedSocket.playerName == playerName)
+			{
+				packet << ServerMessage::ClientConnection;
+				std::string message = "** " + playerName + " couldn't join due to duplicated names **";
+				packet << message;
+			}
+			else
+			{
+				packet << ServerMessage::ClientConnection;
+				std::string message = "******* " + playerName + " joined *******";
+				packet << message;
+			}
+
+			if (!sendPacket(packet, connectedSocket.socket))
+			{
+				disconnect();
+				state = ServerState::Stopped;
+			}		
+
 			if (connectedSocket.playerName == playerName)
 			{
-				OutputMemoryStream packet;
-				packet << ServerMessage::NonWelcome;
+				OutputMemoryStream packete;
+				packete << ServerMessage::NonWelcome;
 
-				if (!sendPacket(packet, socket))
+				if (!sendPacket(packete, socket))
 				{
 					disconnect();
 					state = ServerState::Stopped;
 				}
 
 				return;
-			}
-
-			if (connectedSocket.socket == socket)
-			{
-				connectedSocket.playerName = playerName;
-
-				OutputMemoryStream packet;
-				packet << ServerMessage::Welcome;
-				packet << "Welcome " + playerName;
-
-				if (!sendPacket(packet, connectedSocket.socket))
-				{
-					disconnect();
-					state = ServerState::Stopped;
-				}
-			
 			}
 		}
 	}
@@ -163,10 +174,27 @@ void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 	// Remove the connected socket from the list
 	for (auto it = connectedSockets.begin(); it != connectedSockets.end(); ++it)
 	{
-		auto &connectedSocket = *it;
-		if (connectedSocket.socket == socket)
-		{
+		if ((*it).socket == socket) {
+
+			std::string playerName = (*it).playerName;
 			connectedSockets.erase(it);
+
+			OutputMemoryStream packet;
+
+			for (const auto& connectedSocket : connectedSockets) {
+
+				packet << ServerMessage::ClientDisconnection;
+				std::string message = "******** " + playerName + " left ********";
+				packet << message;
+
+				if (!sendPacket(packet, connectedSocket.socket))
+				{
+					disconnect();
+					state = ServerState::Stopped;
+				}
+
+			}
+
 			break;
 		}
 	}
