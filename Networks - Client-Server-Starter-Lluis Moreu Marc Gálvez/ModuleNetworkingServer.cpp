@@ -121,17 +121,17 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 		packet >> playerName;
 
 		// Set the player name of the corresponding connected socket proxy
-		for (auto& connectedSocket : connectedSockets)
+		for (auto& c_socket : connectedSockets)
 		{
 			OutputMemoryStream packet;
 
-			if (connectedSocket.socket == s) {
-				connectedSocket.playerName = playerName;
+			if (c_socket.socket == s) {
+				c_socket.playerName = playerName;
 				
 				packet << ServerMessage::Welcome;
 				packet << "**************************************************\n               WELCOME TO THE CHAT\nPlease type /help to see the available commands\n**************************************************";
 			}
-			else if(connectedSocket.playerName == playerName)
+			else if(c_socket.playerName == playerName)
 			{
 				packet << ServerMessage::ClientConnection;
 				std::string message = "** " + playerName + " couldn't join due to duplicated names **";
@@ -144,13 +144,13 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 				packet << message;
 			}
 
-			if (!sendPacket(packet, connectedSocket.socket))
+			if (!sendPacket(packet, c_socket.socket))
 			{
 				disconnect();
 				state = ServerState::Stopped;
 			}		
 
-			if (connectedSocket.playerName == playerName)
+			if (c_socket.playerName == playerName)
 			{
 				OutputMemoryStream packete;
 				packete << ServerMessage::NonWelcome;
@@ -193,30 +193,32 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 				}
 				packet << message;
 			}
-			else if (message.find("/kick") == 0)
+			else if (message.find("/kick ") == 0)
 			{
-				packet << ServerMessage::Kick;
-				for (auto& s : connectedSockets)
+				
+				if (message.find("/kick " + c_socket.playerName) == 0)
 				{
-					if (message.find(s.playerName) == 0)
-					{
-						packet << "******** " + s.playerName + " left ********";
-						packet << true;
-					}
+					packet << ServerMessage::Kick;
+					packet << "******** " + c_socket.playerName + " left ********";
+					packet << true;
 				}
-
-				//Pasar un paquete al cliente para que chape el negocio
+				else if (c_socket.socket == s)
+				{
+					packet << ServerMessage::Error;
+					std::string new_name = message.substr(6, message.length());
+					packet << "******** " + new_name + " unidentified ********";
+					packet << false;
+				}
+				
 			}
 			else if (message.find("/whisper") == 0)
 			{
-				packet << ServerMessage::Type;
-				for (auto& s : connectedSockets)
+				if (message.find("/whisper " + c_socket.playerName) == 0 || c_socket.socket == s)
 				{
-					if (message.find(s.playerName) == 0)
-					{
-						
-					}
-				}
+					packet << ServerMessage::Whisper;
+					std::string new_message = message.substr(10 + c_socket.playerName.length(), message.length()*2);
+					packet << playerName + " whispered:" + new_message;
+				}			
 			}
 			else if (message.find("/change_name") == 0 && c_socket.socket == s)
 			{
@@ -226,6 +228,11 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 				c_socket.playerName = new_name;
 				packet << c_socket.playerName;
 				
+			}
+			else if (message.rfind("/", 0) == 0 && c_socket.socket == s)
+			{
+				packet << ServerMessage::Error;
+				packet << "*** " + message + "is undefined ***\n    Please insert /help for more info";
 			}
 			else if (message.rfind("/", 0) != 0)
 			{

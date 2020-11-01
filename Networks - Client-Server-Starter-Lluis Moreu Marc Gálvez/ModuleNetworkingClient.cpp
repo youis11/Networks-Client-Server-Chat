@@ -6,6 +6,7 @@
 #define IMGUI_COLOR_WHITE ImVec4(1.0f,1.0f,1.0f,1.0f)
 #define IMGUI_COLOR_GREY ImVec4(0.3f,0.4f,0.5f,1.0f)
 #define IMGUI_COLOR_RED ImVec4(0.7f,0.f,0.f,1.0f)
+#define IMGUI_COLOR_PURPLE ImVec4(0.6f,0.4f,0.8f, 1.f)
 
 bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char *pplayerName)
 {
@@ -140,31 +141,37 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 
 		m_messages.push_back({ message, IMGUI_COLOR_YELLOW });
 	}
-	if (serverMessage == ServerMessage::ClientDisconnection) {
+	else if (serverMessage == ServerMessage::ClientDisconnection) {
 		std::string message;
 		packet >> message;
 
 		m_messages.push_back({ message, IMGUI_COLOR_GREY });
 	}
-	if (serverMessage == ServerMessage::ClientConnection) {
+	else if (serverMessage == ServerMessage::ClientConnection) {
 		std::string message;
 		packet >> message;
 
 		m_messages.push_back({ message, IMGUI_COLOR_GREEN });
 	}
-	if (serverMessage == ServerMessage::Type) {
+	else if (serverMessage == ServerMessage::Type) {
 		std::string message;
 		packet >> message;
 
 		m_messages.push_back({message, IMGUI_COLOR_WHITE });
 	}
-	if (serverMessage == ServerMessage::Help) {
+	else if (serverMessage == ServerMessage::Help) {
 		std::string message;
 		packet >> message;
 
 		m_messages.push_back({message, IMGUI_COLOR_YELLOW });
 	}
-	if (serverMessage == ServerMessage::ChangeName)
+	else if (serverMessage == ServerMessage::Whisper) {
+		std::string message;
+		packet >> message;
+
+		m_messages.push_back({message, IMGUI_COLOR_PURPLE });
+	}
+	else if (serverMessage == ServerMessage::ChangeName)
 	{
 		std::string message;
 		std::string p_name;
@@ -175,7 +182,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		m_messages.push_back({message, IMGUI_COLOR_CIAN});
 		playerName = p_name;
 	}
-	if (serverMessage == ServerMessage::Kick)
+	else if (serverMessage == ServerMessage::Kick)
 	{
 		std::string message;
 		bool kick;
@@ -185,6 +192,14 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 
 		m_messages.push_back({ message, IMGUI_COLOR_RED });
 		has_kicked = kick;
+	}
+	else if (serverMessage == ServerMessage::Error)
+	{
+		std::string message;
+
+		packet >> message;
+
+		m_messages.push_back({ message, IMGUI_COLOR_RED });
 	}
 	else if (serverMessage == ServerMessage::NonWelcome) {
 		ELOG("'%s' already exists",playerName.c_str());

@@ -18,5 +18,7 @@ enum class ServerMessage
 	Type,
 	ChangeName,
 	Help,
-	Kick
+	Kick,
+	Error,
+	Whisper
 };
