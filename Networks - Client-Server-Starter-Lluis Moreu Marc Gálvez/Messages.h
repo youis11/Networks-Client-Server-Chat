@@ -20,5 +20,7 @@ enum class ServerMessage
 	Help,
 	Kick,
 	Error,
-	Whisper
+	Whisper,
+	Drugs,
+	RockPaperScissors
 };

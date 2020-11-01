@@ -1,12 +1,5 @@
 #include "ModuleNetworkingClient.h"
 
-#define IMGUI_COLOR_YELLOW ImVec4(1.0f,1.0f,0.0f,1.0f)
-#define IMGUI_COLOR_CIAN ImVec4(0.1f,0.9f,1.0f,1.0f)
-#define IMGUI_COLOR_GREEN ImVec4(0.2f,0.9f,0.5f,1.0f)
-#define IMGUI_COLOR_WHITE ImVec4(1.0f,1.0f,1.0f,1.0f)
-#define IMGUI_COLOR_GREY ImVec4(0.3f,0.4f,0.5f,1.0f)
-#define IMGUI_COLOR_RED ImVec4(0.7f,0.f,0.f,1.0f)
-#define IMGUI_COLOR_PURPLE ImVec4(0.6f,0.4f,0.8f, 1.f)
 
 bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPort, const char *pplayerName)
 {
@@ -95,7 +88,14 @@ bool ModuleNetworkingClient::gui()
 		{			
 			for (const auto& message : m_messages)
 			{
-				ImGui::TextColored(message.second, "%s", message.first.c_str());
+				if (!on_drugs)
+				{
+					ImGui::TextColored(message.second, "%s", message.first.c_str());
+				}
+				else
+				{
+					ImGui::TextColored(textColors[rand() % 7 + 1], "%s", message.first.c_str());
+				}
 			}
 		}
 		ImGui::EndChild();
@@ -170,6 +170,20 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> message;
 
 		m_messages.push_back({message, IMGUI_COLOR_PURPLE });
+	}
+	else if (serverMessage == ServerMessage::Drugs) {
+		std::string message;
+		packet >> message;
+
+		m_messages.push_back({ message, IMGUI_COLOR_YELLOW });
+		on_drugs = !on_drugs;
+	}
+	else if (serverMessage == ServerMessage::RockPaperScissors) {
+		std::string message;
+		packet >> message;
+
+		m_messages.push_back({ message, IMGUI_COLOR_YELLOW });
+		on_drugs = !on_drugs;
 	}
 	else if (serverMessage == ServerMessage::ChangeName)
 	{

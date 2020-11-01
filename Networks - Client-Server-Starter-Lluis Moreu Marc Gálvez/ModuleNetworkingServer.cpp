@@ -193,6 +193,33 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 				}
 				packet << message;
 			}
+			else if (message == "/play" && c_socket.socket == s)
+			{
+				packet << ServerMessage::Help;
+				std::string message = "******* User list *******";
+				for (auto& s : connectedSockets)
+				{
+					message += "\n- " + s.playerName;
+				}
+				packet << message;
+			}
+			else if (message == "/drugs" && c_socket.socket == s)
+			{
+				drugs = !drugs;
+				packet << ServerMessage::Drugs;
+
+				if (drugs)
+				{
+					std::string new_message = "******* DRUGS MODE ON *******\n Please type /drugs again to stop it!";
+					packet << new_message;
+				}
+				else
+				{
+					std::string new_message = "******* DRUGS MODE OFF *******";
+					packet << new_message;
+				}
+					
+			}
 			else if (message.find("/kick ") == 0)
 			{
 				

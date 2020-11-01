@@ -64,5 +64,6 @@ private:
 	};
 
 	std::vector<ConnectedSocket> connectedSockets;
+	bool drugs;
 };
 
