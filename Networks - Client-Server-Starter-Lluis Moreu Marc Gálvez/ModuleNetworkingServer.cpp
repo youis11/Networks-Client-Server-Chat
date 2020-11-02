@@ -243,17 +243,14 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 				if (message.find("/whisper " + c_socket.playerName) == 0 || c_socket.socket == s)
 				{
 					packet << ServerMessage::Whisper;
-					std::string whisper = "/whisper ";
-					int offset = whisper.size() + c_socket.playerName.length();
-					std::string new_message = message.substr(offset, offset - whisper.size() - 1);
-					std::string n_message = GetArgument(message, 1, true);
-					packet << playerName + " whispered:" + n_message;
+					std::string new_message = message.substr(10 + c_socket.playerName.length(), message.length()*2);
+					packet << playerName + " whispered:" + new_message;
 				}			
 			}
 			else if (message.find("/change_name") == 0 && c_socket.socket == s)
 			{
 				packet << ServerMessage::ChangeName;
-				std::string new_name = message.substr(13, message.length());
+				std::string new_name = message.substr(12, message.length());
 				packet << "*** " + c_socket.playerName + " changed to:" + new_name + " ***";
 				c_socket.playerName = new_name;
 				packet << c_socket.playerName;
@@ -314,40 +311,3 @@ void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 	}
 }
 
-std::string ModuleNetworkingServer::GetArgument(const std::string& str, int argPos, bool andForward)
-{
-	std::string ret;
-
-	int argn = 0;
-	bool record = false;
-
-	for (auto i = str.begin(); i != str.end(); ++i) {
-		if (*i == ' ') {
-			if ((*(i - 1)) == ' ')
-				continue;
-			if (record) {
-				break;
-			}
-			if (argn == argPos) {
-				record = true;
-			}
-			else {
-				argn++;
-			}
-		}
-		else if (record) {
-			if (andForward) {
-				while (i != str.end()) {
-					ret += *i;
-					++i;
-				}
-				break;
-			}
-			else {
-				ret += *i;
-			}
-		}
-	}
-
-	return ret;
-}

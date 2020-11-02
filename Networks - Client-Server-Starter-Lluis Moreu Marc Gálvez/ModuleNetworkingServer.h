@@ -65,7 +65,5 @@ private:
 
 	std::vector<ConnectedSocket> connectedSockets;
 	bool drugs;
-
-	std::string GetArgument(const std::string& str, int argPos, bool andForward);
 };
 
