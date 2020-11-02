@@ -243,14 +243,19 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 				if (message.find("/whisper " + c_socket.playerName) == 0 || c_socket.socket == s)
 				{
 					packet << ServerMessage::Whisper;
-					std::string new_message = message.substr(10 + c_socket.playerName.length(), message.length()*2);
+					std::string whisper = "/whisper ";
+					std::string argument = message.substr(whisper.length());
+					std::size_t spacingIndex = argument.find(" ");
+					std::string toPlayerName = argument.substr(0, spacingIndex);
+					std::string new_message = argument.substr(spacingIndex + 1);
 					packet << playerName + " whispered:" + new_message;
 				}			
 			}
 			else if (message.find("/change_name") == 0 && c_socket.socket == s)
 			{
 				packet << ServerMessage::ChangeName;
-				std::string new_name = message.substr(12, message.length());
+				std::string change_name = "/change_name ";
+				std::string new_name = message.substr(change_name.length(), message.length());
 				packet << "*** " + c_socket.playerName + " changed to:" + new_name + " ***";
 				c_socket.playerName = new_name;
 				packet << c_socket.playerName;
