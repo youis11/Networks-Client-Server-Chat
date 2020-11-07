@@ -222,8 +222,14 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 			}
 			else if (message.find("/kick ") == 0)
 			{
-				
-				if (message.find("/kick " + c_socket.playerName) == 0)
+				std::string command = "/kick ";
+				if (message.length() <= command.length())
+				{
+					break;
+				}
+				std::string playerName = message.substr(command.length());
+
+				if (c_socket.playerName == playerName)
 				{
 					packet << ServerMessage::Kick;
 					packet << "******** " + c_socket.playerName + " left ********";
@@ -234,7 +240,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 					bool player_found = false;
 
 					for (auto& socket : connectedSockets)
-						if (message.find("/kick " + socket.playerName) == 0)
+						if (socket.playerName == playerName)
 							player_found = true;
 						
 					
