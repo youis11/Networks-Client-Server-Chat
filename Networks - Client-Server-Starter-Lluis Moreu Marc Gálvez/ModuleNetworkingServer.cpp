@@ -231,10 +231,21 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET s, const InputMemoryStr
 				}
 				else if (c_socket.socket == s)
 				{
-					packet << ServerMessage::Error;
-					std::string new_name = message.substr(6, message.length());
-					packet << "******** " + new_name + " unidentified ********";
-					packet << false;
+					bool player_found = false;
+
+					for (auto& socket : connectedSockets)
+						if (message.find("/kick " + socket.playerName) == 0)
+							player_found = true;
+						
+					
+					if (!player_found)
+					{
+						packet << ServerMessage::Error;
+						std::string new_name = message.substr(6, message.length());
+						packet << "******** " + new_name + " unidentified ********";
+						packet << false;
+					}
+					
 				}
 				
 			}
